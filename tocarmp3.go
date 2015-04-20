@@ -6,6 +6,8 @@ import (
     "flag"
     "fmt"
     "os"
+    "log"
+    "os/exec"
     "io/ioutil"
 )
 
@@ -51,8 +53,23 @@ func main() {
         fileExt := strings.ToLower(filePart[len(filePart) - 1])
 
         if ! audioExts[fileExt] { continue }
+
+        // var cmd string
         fmt.Println("audio file name:", file.Name(), "ext:", fileExt)
+        fileName := file.Name()[:len(file.Name())-4]
+        var cmd * exec.Cmd
+        if fileExt == "mp3" {
+            cmd = exec.Command("cp", args[0] + file.Name(), args[1] + "/")
+        } else {
+            cmd = exec.Command("avconv", "-i", args[0] + "/" + file.Name(), args[1] + "/" + fileName + ".mp3")
+        }
+        fmt.Println("cmd is:", cmd)
+        error := cmd.Start()
+	if error != nil {
+	    log.Fatal(error)
+	}
+	log.Printf("Waiting for command to finish...")
+	error = cmd.Wait()
+	log.Printf("Command finished with error: %v", error)
     }
-    // fmt.Printf("opening %s\n", args[0]);
-    // ...
 }
